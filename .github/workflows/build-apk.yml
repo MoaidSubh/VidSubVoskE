@@ -1,9 +1,9 @@
 {"name": "Build APK", "on": {"push": {}, "workflow_dispatch": {}},
 "jobs": {"build": {"runs-on": "ubuntu-latest", "steps": [
 {"uses": "actions/checkout@v4"},
-{"name": "Unzip project", "run": "unzip -o \"$(ls *.zip | head -1)\""},
+{"name": "Unzip project (if a zip was uploaded)", "run": "Z=$(find . -maxdepth 2 -name '*.zip' | head -1); if [ -n \"$Z\" ]; then unzip -o \"$Z\"; else echo 'No zip found - using uploaded folder'; fi; ls -la"},
 {"uses": "actions/setup-java@v4", "with": {"distribution": "temurin", "java-version": "17"}},
 {"uses": "gradle/actions/setup-gradle@v4", "with": {"gradle-version": "8.7"}},
-{"name": "Build APK", "run": "cd \"$(dirname \"$(ls */settings.gradle.kts | head -1)\")\" && gradle assembleRelease --no-daemon --stacktrace && cp app/build/outputs/apk/release/app-release.apk \"$GITHUB_WORKSPACE/$(basename \"$PWD\").apk\""},
+{"name": "Build APK", "run": "P=$(find . -name settings.gradle.kts -not -path './.git/*' | head -1); if [ -z \"$P\" ]; then echo 'Project not found - upload VidSubVoskE.zip'; exit 1; fi; cd \"$(dirname \"$P\")\" && gradle assembleRelease --no-daemon --stacktrace && cp app/build/outputs/apk/release/app-release.apk \"$GITHUB_WORKSPACE/$(basename \"$PWD\").apk\""},
 {"uses": "actions/upload-artifact@v4", "with": {"name": "APK", "path": "*.apk"}}
 ]}}}
